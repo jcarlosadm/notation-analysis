@@ -28,7 +28,9 @@ def printLines():
     n1 = randNumber(2)-1
     n2 = randNumber(4)
     n3 = randNumber(3)-1
-    print("["+str(n1+n3)+","+str(n2)+"]")
+    aa = [n1+n3,n2]
+    print(aa)
+    #print("["+str(n1+n3)+","+str(n2)+"]")
     for x in range(1, n1+1):
         printResult(0)
     for x in range(1, n2+1):

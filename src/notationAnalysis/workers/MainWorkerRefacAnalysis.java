@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import gitCommitStatistics.git.GitManager;
 import gitCommitStatistics.workers.MainWorker;
 import gitCommitStatistics.workers.Worker;
@@ -15,7 +17,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
 
     private static final String REPORT_PATH = "report.txt";
 
-    private static final double TOLERANCE_LEVEL = 0.5;
+    private static final double TOLERANCE_LEVEL = 0.8;
 
     private static final String DISCIPLINED_STRING = "disciplined";
 
@@ -96,7 +98,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                 this.addUndisciplinedList(undisciplinedList, body);
 
                 if (!this.checkUndNotationTotal(head, undisciplinedList)) {
-                    System.out.println("disciplined and undisciplined total don\'t match");
+                    System.out.println("undisciplined total don\'t match");
                     continue;
                 }
 
@@ -141,7 +143,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                         if (this.compare(undNotation, dNotationOther) >= TOLERANCE_LEVEL) {
                             // TODO write report
                             try {
-                                report.write(commitId + " "+commitIdOther+" ");
+                                report.write(commitId + " " + commitIdOther + " ");
                                 report.writeNewline();
                                 report.write(undNotation);
                                 report.writeNewline();
@@ -150,7 +152,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                             } catch (IOException e) {
                                 System.out.println("error to write report");
                             }
-                            
+
                             auxString = dNotationOther;
                             found = true;
                             break;
@@ -175,9 +177,9 @@ public class MainWorkerRefacAnalysis extends MainWorker {
     }
 
     private boolean checkUndNotationTotal(String headValues, List<String> undisciplinedList) {
-        int totalDisciplined = this.getTotalDisciplined(headValues);
+        int totalUndDisciplined = this.getTotalUndisciplined(headValues);
 
-        return (totalDisciplined == undisciplinedList.size());
+        return (totalUndDisciplined == undisciplinedList.size());
     }
 
     private void addUndisciplinedList(List<String> undisciplinedList, String body) {
@@ -185,9 +187,34 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         undisciplinedList.addAll(this.getNotationList(body, UNDISCIPLINED_STRING));
     }
 
+    /**
+     * Get similarity between two strings. Algorithm found in
+     * http://stackoverflow.com/questions/955110/similarity-string-comparison-in
+     * -java
+     * 
+     * @param str1 String one
+     * @param str2 String two
+     * @return similarity level between 0 and 1, inclusive
+     */
     private double compare(String str1, String str2) {
         // TODO implement
-        return 50.0;
+        String longer = str1, shorter = str2;
+        if (str1.length() < str2.length()) { // longer should always have
+                                             // greater length
+            longer = str2;
+            shorter = str1;
+        }
+        int longerLength = longer.length();
+        if (longerLength == 0) {
+            return 1.0;
+            /* both strings are zero length */ }
+        /*
+         * // If you have StringUtils, you can use it to calculate the edit
+         * distance: return (longerLength -
+         * StringUtils.getLevenshteinDistance(longer, shorter)) / (double)
+         * longerLength;
+         */
+        return (longerLength - StringUtils.getLevenshteinDistance(longer, shorter)) / (double) longerLength;
     }
 
     private boolean checkNotationNumbers(String headValues, Hashtable<String, List<String>> hashNotations) {
@@ -203,7 +230,9 @@ public class MainWorkerRefacAnalysis extends MainWorker {
     private int getValueFromHead(String head, int index) {
         String[] array = head.split(",");
         array[0] = array[0].substring(1);
+        array[0] = array[0].replaceAll("\\s+", "");
         array[1] = array[1].substring(0, array[1].length() - 1);
+        array[1] = array[1].replaceAll("\\s+", "");
 
         int value = 0;
         try {
@@ -240,8 +269,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         for (String line : lines) {
             if (found && line.trim().startsWith(NOTATION_SEPARATOR)) {
                 found = false;
-                if (auxString != null && !auxString.isEmpty()
-                        && !auxString.equals(NOTATION_SEPARATOR + System.getProperty("line.separator"))) {
+                if (auxString != null && !auxString.isEmpty()) {
                     list.add(auxString);
                 }
                 auxString = "";
@@ -251,13 +279,11 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                     && ((undisciplined == true && line.toLowerCase().contains(UNDISCIPLINED_MARK))
                             || (disciplined == true && !line.toLowerCase().contains(UNDISCIPLINED_MARK)))) {
                 found = true;
-                auxString += NOTATION_SEPARATOR + System.getProperty("line.separator");
             } else if (found == true) {
                 auxString += line + System.getProperty("line.separator");
             }
         }
-        if (found && auxString != null && !auxString.isEmpty()
-                && !auxString.equals(NOTATION_SEPARATOR + System.getProperty("line.separator"))) {
+        if (found && auxString != null && !auxString.isEmpty()) {
             list.add(auxString);
         }
 
