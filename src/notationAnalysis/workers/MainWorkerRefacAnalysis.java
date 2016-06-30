@@ -1,14 +1,20 @@
 package notationAnalysis.workers;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import gitCommitStatistics.git.GitManager;
+import gitCommitStatistics.properties.PropertiesManager;
 import gitCommitStatistics.workers.MainWorker;
 import gitCommitStatistics.workers.Worker;
 import notationAnalysis.util.Report;
@@ -22,10 +28,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
     private static final String DISCIPLINED_STRING = "disciplined";
 
     private static final String UNDISCIPLINED_STRING = "undisciplined";
-
-    private static final int BODY_INDEX = 1;
-
-    private static final int HEAD_INDEX = 0;
 
     private static final int DISCIPLINED_INDEX = 1;
 
@@ -91,8 +93,24 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             fileHash = this.resultMap.get(commitId);
             for (String file : fileHash.keySet()) {
 
-                String head = fileHash.get(file).get(HEAD_INDEX);
-                String body = fileHash.get(file).get(BODY_INDEX);
+                BufferedReader bReader = this.createBufferedReader(file, commitId);
+                if (bReader == null) {
+                    continue;
+                }
+
+                List<String> head = fileHash.get(file);
+                List<String> body = new ArrayList<>();
+                String line = "";
+                try {
+                    while ((line = bReader.readLine()) != null) {
+                        body.add(line);
+                    }
+
+                    bReader.close();
+                } catch (Exception e) {
+                    System.out.println("error to read file");
+                    continue;
+                }
 
                 undisciplinedList.clear();
                 this.addUndisciplinedList(undisciplinedList, body);
@@ -108,8 +126,24 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                     continue;
                 }
 
-                String headOther = this.resultMap.get(commitIdOther).get(file).get(HEAD_INDEX);
-                String bodyOther = this.resultMap.get(commitIdOther).get(file).get(BODY_INDEX);
+                BufferedReader bReader2 = this.createBufferedReader(file, commitIdOther);
+                if (bReader2 == null) {
+                    continue;
+                }
+
+                List<String> headOther = this.resultMap.get(commitIdOther).get(file);
+                List<String> bodyOther = new ArrayList<>();
+                line = "";
+                try {
+                    while ((line = bReader2.readLine()) != null) {
+                        bodyOther.add(line);
+                    }
+
+                    bReader.close();
+                } catch (Exception e) {
+                    System.out.println("error to read file");
+                    continue;
+                }
 
                 hashNotationsOther = new Hashtable<>();
                 this.fillDisciplined(hashNotationsOther, bodyOther);
@@ -172,17 +206,54 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         if (!report.close())
             System.out.println("error to close report");
 
+        this.deleteAndCreateBackupFolder();
+
         System.out.println("finished analysis");
 
     }
 
-    private boolean checkUndNotationTotal(String headValues, List<String> undisciplinedList) {
+    private void deleteAndCreateBackupFolder() {
+        String backupPath = PropertiesManager.getPropertie("path") + System.getProperty("file.separator") + "backup";
+        File backupFolder = new File(backupPath);
+        if (backupFolder.exists() && backupFolder.isDirectory()) {
+            try {
+                FileUtils.deleteDirectory(backupFolder);
+            } catch (Exception e) {
+                System.out.println("error to delete backup folder");
+            }
+        }
+        backupFolder.mkdir();
+    }
+
+    private BufferedReader createBufferedReader(String file, String commit) {
+        String resultFolderPath = PropertiesManager.getPropertie("path") + System.getProperty("file.separator")
+                + "backup" + System.getProperty("file.separator") + commit;
+        File backupFolder = new File(resultFolderPath);
+        if (!backupFolder.exists() || !backupFolder.isDirectory()) {
+            System.out.println("backup folder not exists");
+            return null;
+        }
+
+        String filename = file.substring(0, file.lastIndexOf("."));
+        String filepath = resultFolderPath + System.getProperty("file.separator") + filename;
+        BufferedReader bReader = null;
+        try {
+            bReader = new BufferedReader(new FileReader(new File(filepath)));
+        } catch (FileNotFoundException e1) {
+            System.out.println("error to read file");
+            return null;
+        }
+
+        return bReader;
+    }
+
+    private boolean checkUndNotationTotal(List<String> headValues, List<String> undisciplinedList) {
         int totalUndDisciplined = this.getTotalUndisciplined(headValues);
 
         return (totalUndDisciplined == undisciplinedList.size());
     }
 
-    private void addUndisciplinedList(List<String> undisciplinedList, String body) {
+    private void addUndisciplinedList(List<String> undisciplinedList, List<String> body) {
         undisciplinedList.clear();
         undisciplinedList.addAll(this.getNotationList(body, UNDISCIPLINED_STRING));
     }
@@ -192,8 +263,10 @@ public class MainWorkerRefacAnalysis extends MainWorker {
      * http://stackoverflow.com/questions/955110/similarity-string-comparison-in
      * -java
      * 
-     * @param str1 String one
-     * @param str2 String two
+     * @param str1
+     *            String one
+     * @param str2
+     *            String two
      * @return similarity level between 0 and 1, inclusive
      */
     private double compare(String str1, String str2) {
@@ -217,7 +290,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         return (longerLength - StringUtils.getLevenshteinDistance(longer, shorter)) / (double) longerLength;
     }
 
-    private boolean checkNotationNumbers(String headValues, Hashtable<String, List<String>> hashNotations) {
+    private boolean checkNotationNumbers(List<String> headValues, Hashtable<String, List<String>> hashNotations) {
         int totalDisciplined = this.getTotalDisciplined(headValues);
         int totalUndisciplined = this.getTotalUndisciplined(headValues);
 
@@ -227,16 +300,10 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         return (matchD && matchUnd);
     }
 
-    private int getValueFromHead(String head, int index) {
-        String[] array = head.split(",");
-        array[0] = array[0].substring(1);
-        array[0] = array[0].replaceAll("\\s+", "");
-        array[1] = array[1].substring(0, array[1].length() - 1);
-        array[1] = array[1].replaceAll("\\s+", "");
-
+    private int getValueFromHead(List<String> head, int index) {
         int value = 0;
         try {
-            value = Integer.parseInt(array[index]);
+            value = Integer.parseInt(head.get(index));
         } catch (Exception e) {
             value = 0;
         }
@@ -244,15 +311,15 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         return value;
     }
 
-    private int getTotalUndisciplined(String head) {
+    private int getTotalUndisciplined(List<String> head) {
         return this.getValueFromHead(head, UNDISCIPLINED_INDEX);
     }
 
-    private int getTotalDisciplined(String head) {
+    private int getTotalDisciplined(List<String> head) {
         return this.getValueFromHead(head, DISCIPLINED_INDEX);
     }
 
-    private List<String> getNotationList(String body, String notationType) {
+    private List<String> getNotationList(List<String> body, String notationType) {
         List<String> list = new ArrayList<>();
 
         boolean undisciplined = false;
@@ -263,7 +330,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             disciplined = true;
         }
 
-        String[] lines = body.split(System.getProperty("line.separator"));
+        List<String> lines = body;
         boolean found = false;
         String auxString = "";
         for (String line : lines) {
@@ -290,11 +357,11 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         return list;
     }
 
-    private void fillUndisciplined(Hashtable<String, List<String>> hashNotations, String body) {
+    private void fillUndisciplined(Hashtable<String, List<String>> hashNotations, List<String> body) {
         hashNotations.put(UNDISCIPLINED_STRING, this.getNotationList(body, UNDISCIPLINED_STRING));
     }
 
-    private void fillDisciplined(Hashtable<String, List<String>> hashNotations, String body) {
+    private void fillDisciplined(Hashtable<String, List<String>> hashNotations, List<String> body) {
         hashNotations.put(DISCIPLINED_STRING, this.getNotationList(body, DISCIPLINED_STRING));
     }
 }
