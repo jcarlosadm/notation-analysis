@@ -41,6 +41,12 @@ public class WorkerRefacAnalysis extends Worker {
             System.out.println("analysis folder not exists");
             return;
         }
+        
+        File[] content = analysisFolder.listFiles();
+        if (content.length == 0) {
+            System.out.println("no files to move in commit "+this.hashId);
+            return;
+        }
 
         String resultFolderPath = PropertiesManager.getPropertie("path") + System.getProperty("file.separator")
                 + "backup";
@@ -57,7 +63,6 @@ public class WorkerRefacAnalysis extends Worker {
             return;
         }
 
-        File[] content = analysisFolder.listFiles();
         for (File file : content) {
             if (!file.isDirectory()) {
                 try {

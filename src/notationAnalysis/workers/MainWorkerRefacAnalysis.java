@@ -74,7 +74,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             return;
         }
 
-        // TODO change
         String reponame = repo.substring(repo.lastIndexOf(System.getProperty("file.separator"))+1,
                 repo.lastIndexOf("."));
         
@@ -190,7 +189,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
 
                     for (String dNotationOther : hashNotationsOther.get(DISCIPLINED_STRING)) {
                         if (this.compare(undNotation, dNotationOther) >= TOLERANCE_LEVEL) {
-                            // TODO write report
                             try {
                                 report.write(commitId + " " + commitIdOther + " ");
                                 report.writeNewline();
@@ -228,7 +226,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
     }
 
     private boolean createReportFolder() {
-        // TODO Auto-generated method stub
         String resultPath = PropertiesManager.getPropertie("path");
         File resultFolder = new File(resultPath);
         if (!resultFolder.exists() || !resultFolder.isDirectory()) {
@@ -306,7 +303,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
      * @return similarity level between 0 and 1, inclusive
      */
     private double compare(String str1, String str2) {
-        // TODO implement
         String longer = str1, shorter = str2;
         if (str1.length() < str2.length()) { // longer should always have
                                              // greater length

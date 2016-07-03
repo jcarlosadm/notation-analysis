@@ -65,14 +65,18 @@ public class InternWorkerRefacAnalysis extends InternWorker {
             System.out.println("error to write body");
         }
 
-        head = head.replace("[", "").replace("]", "");
-        head = head.replaceAll("\\s+", "");
-        String[] headArray = head.split(",");
-
         ArrayList<String> result = new ArrayList<String>();
-        result.add(headArray[0]);
-        result.add(headArray[1]);
-        // result.add("0");
+        try {
+            head = head.replace("[", "").replace("]", "");
+            head = head.replaceAll("\\s+", "");
+            String[] headArray = head.split(",");
+            
+            result.add(headArray[0]);
+            result.add(headArray[1]);
+            result.add("0");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return result;
     }
