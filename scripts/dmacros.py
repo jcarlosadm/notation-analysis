@@ -690,7 +690,10 @@ class DisciplinedAnnotations:
 
 ##################################################
     def printDisciplinedAndUndisciplinedList(self):
-        print "[" + str(len(self.undisciplinedlist)) + "," + str(len(self.disciplinedlist[0])) + "]"
+        if len(self.disciplinedlist) is 0:
+                    print "[" + str(len(self.undisciplinedlist)) + ",0]"
+        else:
+            print "[" + str(len(self.undisciplinedlist)) + "," + str(len(self.disciplinedlist[0])) + "]"
         for elem in self.disciplinedlist:
             for ifdefs in elem:
                 ifdef = ifdefs[0]

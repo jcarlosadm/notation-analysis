@@ -21,7 +21,10 @@ import notationAnalysis.util.Report;
 
 public class MainWorkerRefacAnalysis extends MainWorker {
 
-    private static final String REPORT_PATH = "report.txt";
+    private static final String REPORT_FOLDER_NAME = "reports";
+
+    private static final String REPORT_NAME = "report";
+    private static final String REPORT_EXTENSION = "txt";
 
     private static final double TOLERANCE_LEVEL = 0.8;
 
@@ -50,6 +53,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
     @Override
     protected Worker getWorkerInstance(ArrayList<String> commits, Hashtable<String, ArrayList<String>> changeMap,
             int commitIndex) {
+
         return new WorkerRefacAnalysis("Worker-" + commitIndex % numberOfWorkers, commits.get(commitIndex),
                 changeMap.get(commits.get(commitIndex)));
     }
@@ -64,9 +68,20 @@ public class MainWorkerRefacAnalysis extends MainWorker {
     }
 
     @Override
-    protected void makeAnalysisOnCurrentRepo(GitManager gitManager) {
+    protected void makeAnalysisOnCurrentRepo(GitManager gitManager, String repo) {
 
-        Report report = Report.getInstance(REPORT_PATH);
+        if (!this.createReportFolder()) {
+            return;
+        }
+
+        // TODO change
+        String reponame = repo.substring(repo.lastIndexOf(System.getProperty("file.separator"))+1,
+                repo.lastIndexOf("."));
+        
+        String reportPath = PropertiesManager.getPropertie("path") + System.getProperty("file.separator")
+                + REPORT_FOLDER_NAME + System.getProperty("file.separator") + REPORT_NAME + "_" +
+                reponame + "." + REPORT_EXTENSION;
+        Report report = Report.getInstance(reportPath);
         if (report == null) {
             System.out.println("error to create report");
             return;
@@ -210,6 +225,27 @@ public class MainWorkerRefacAnalysis extends MainWorker {
 
         System.out.println("finished analysis");
 
+    }
+
+    private boolean createReportFolder() {
+        // TODO Auto-generated method stub
+        String resultPath = PropertiesManager.getPropertie("path");
+        File resultFolder = new File(resultPath);
+        if (!resultFolder.exists() || !resultFolder.isDirectory()) {
+            System.out.println("result folder don\'t exists");
+            return false;
+        }
+
+        String reportFolderPath = resultPath + System.getProperty("file.separator") + REPORT_FOLDER_NAME;
+        File reportFolder = new File(reportFolderPath);
+        if (!reportFolder.exists() || !reportFolder.isDirectory()) {
+            if (!reportFolder.mkdir()) {
+                System.out.println("fail to create report folder");
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void deleteAndCreateBackupFolder() {

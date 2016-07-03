@@ -57,7 +57,7 @@ public class InternWorkerRefacAnalysis extends InternWorker {
             head = "[0,0]";
             body = "";
         }
-
+        
         try {
             bWriter.write(body);
             bWriter.close();
@@ -72,7 +72,7 @@ public class InternWorkerRefacAnalysis extends InternWorker {
         ArrayList<String> result = new ArrayList<String>();
         result.add(headArray[0]);
         result.add(headArray[1]);
-        result.add("0");
+        // result.add("0");
 
         return result;
     }
