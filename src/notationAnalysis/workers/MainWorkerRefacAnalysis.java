@@ -86,8 +86,15 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             return;
         }
 
-        List<String> commits = gitManager.getCommitHashList();
-        Collections.reverse(commits);
+        List<String> commits = new ArrayList<>();
+        List<String> completeCommits = gitManager.getCommitHashList();
+        Collections.reverse(completeCommits);
+        
+        for (String cCommit : completeCommits) {
+            if (this.resultMap.containsKey(cCommit)) {
+                commits.add(cCommit);
+            }
+        }
 
         int commitIndex = 0;
         String commitId = commits.get(commitIndex);
