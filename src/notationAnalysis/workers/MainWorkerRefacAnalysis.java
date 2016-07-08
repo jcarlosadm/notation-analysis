@@ -74,12 +74,12 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             return;
         }
 
-        String reponame = repo.substring(repo.lastIndexOf(System.getProperty("file.separator"))+1,
+        String reponame = repo.substring(repo.lastIndexOf(System.getProperty("file.separator")) + 1,
                 repo.lastIndexOf("."));
-        
+
         String reportPath = PropertiesManager.getPropertie("path") + System.getProperty("file.separator")
-                + REPORT_FOLDER_NAME + System.getProperty("file.separator") + REPORT_NAME + "_" +
-                reponame + "." + REPORT_EXTENSION;
+                + REPORT_FOLDER_NAME + System.getProperty("file.separator") + REPORT_NAME + "_" + reponame + "."
+                + REPORT_EXTENSION;
         Report report = Report.getInstance(reportPath);
         if (report == null) {
             System.out.println("error to create report");
@@ -89,7 +89,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         List<String> commits = new ArrayList<>();
         List<String> completeCommits = gitManager.getCommitHashList();
         Collections.reverse(completeCommits);
-        
+
         for (String cCommit : completeCommits) {
             if (this.resultMap.containsKey(cCommit)) {
                 commits.add(cCommit);

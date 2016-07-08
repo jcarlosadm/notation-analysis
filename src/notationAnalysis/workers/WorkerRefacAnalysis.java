@@ -44,7 +44,7 @@ public class WorkerRefacAnalysis extends Worker {
         
         File[] content = analysisFolder.listFiles();
         if (content.length == 0) {
-            System.out.println("no files to move in commit "+this.hashId);
+            //System.out.println("no files to move in commit "+this.hashId);
             return;
         }
 
