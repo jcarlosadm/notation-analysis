@@ -24,7 +24,7 @@ public class WorkerRefacAnalysis extends Worker {
 
     @Override
     protected void preCommitTask() {
-        String resultAnalysisFolderPath = this.path + System.getProperty("file.separator") + RESULT_ANALYSIS_FOLDERNAME;
+        String resultAnalysisFolderPath = this.path + File.separator + RESULT_ANALYSIS_FOLDERNAME;
         File analysisFolder = new File(resultAnalysisFolderPath);
         if (!analysisFolder.exists() || !analysisFolder.isDirectory()) {
             if (!analysisFolder.mkdir()) {
@@ -35,28 +35,27 @@ public class WorkerRefacAnalysis extends Worker {
 
     @Override
     protected void postCommitTask() {
-        String resultAnalysisFolderPath = this.path + System.getProperty("file.separator") + RESULT_ANALYSIS_FOLDERNAME;
+        String resultAnalysisFolderPath = this.path + File.separator + RESULT_ANALYSIS_FOLDERNAME;
         File analysisFolder = new File(resultAnalysisFolderPath);
         if (!analysisFolder.exists() || !analysisFolder.isDirectory()) {
             System.out.println("analysis folder not exists");
             return;
         }
-        
+
         File[] content = analysisFolder.listFiles();
         if (content.length == 0) {
-            //System.out.println("no files to move in commit "+this.hashId);
+            // System.out.println("no files to move in commit "+this.hashId);
             return;
         }
 
-        String resultFolderPath = PropertiesManager.getPropertie("path") + System.getProperty("file.separator")
-                + "backup";
+        String resultFolderPath = PropertiesManager.getPropertie("path") + File.separator + "backup";
         File backupFolder = new File(resultFolderPath);
         if (!backupFolder.exists() || !backupFolder.isDirectory()) {
             System.out.println("backup folder not exists");
             return;
         }
 
-        String commitPath = resultFolderPath + System.getProperty("file.separator") + this.hashId;
+        String commitPath = resultFolderPath + File.separator + this.hashId;
         File commitFolder = new File(commitPath);
         if (!commitFolder.mkdir()) {
             System.out.println("error to create commit analysis directory");
@@ -73,8 +72,8 @@ public class WorkerRefacAnalysis extends Worker {
             }
         }
     }
-    
-    public static String getResultAnalysisFolderName(){
+
+    public static String getResultAnalysisFolderName() {
         return RESULT_ANALYSIS_FOLDERNAME;
     }
 
