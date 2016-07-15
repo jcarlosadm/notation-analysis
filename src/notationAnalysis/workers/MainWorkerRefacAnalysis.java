@@ -40,8 +40,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
 
     private static final String UNDISCIPLINED_MARK = "u";
 
-    private static final boolean RECREATE_BACKUP_FLAG = false;
-
     private static MainWorkerRefacAnalysis instance = null;
 
     public static MainWorkerRefacAnalysis getInstance() {
@@ -245,7 +243,14 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         if (!report.close())
             System.out.println("error to close report");
 
-        if (RECREATE_BACKUP_FLAG)
+        boolean recreateBackupFolder;
+        try {
+            recreateBackupFolder = Boolean.parseBoolean(PropertiesManager.getPropertie("recreate.backup.folder"));
+        } catch (Exception e) {
+            recreateBackupFolder = true;
+        }
+        
+        if (recreateBackupFolder)
             this.deleteAndCreateBackupFolder();
 
         System.out.println("finished analysis");

@@ -9,10 +9,23 @@ import notationAnalysis.workers.MainWorkerRefacAnalysis;
 
 public class Main {
 
-    private static final boolean DELETE_RESULT_FOLDER = true;
-
     public static void main(String[] args) {
-        if (DELETE_RESULT_FOLDER) {
+        PropertiesManager.setNewPath("./general.properties");
+        
+        deleteResultFolder();
+
+        MainWorkerRefacAnalysis.getInstance();
+    }
+
+    private static void deleteResultFolder() {
+        boolean delResultFolder;
+        try {
+            delResultFolder = Boolean.parseBoolean(PropertiesManager.getPropertie("delete.result.folder.onstart"));
+        } catch (Exception e) {
+            delResultFolder = true;
+        }
+        
+        if (delResultFolder) {
             File resultFolder = new File(PropertiesManager.getPropertie("path"));
             if (resultFolder.exists() && resultFolder.isDirectory()) {
                 try {
@@ -21,7 +34,5 @@ public class Main {
                 }
             }
         }
-
-        MainWorkerRefacAnalysis.getInstance();
     }
 }

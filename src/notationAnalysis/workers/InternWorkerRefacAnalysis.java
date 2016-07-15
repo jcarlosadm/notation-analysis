@@ -25,7 +25,7 @@ public class InternWorkerRefacAnalysis extends InternWorker {
      */
     @Override
     protected ArrayList<String> transformDmacrosOutput(String dmacrosOutput) {
-
+        
         String resultFolderPath = this.path + File.separator
                 + WorkerRefacAnalysis.getResultAnalysisFolderName();
         File resultFolder = new File(resultFolderPath);
