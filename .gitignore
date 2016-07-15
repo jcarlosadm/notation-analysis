@@ -18,7 +18,8 @@ hs_err_pid*
 /.settings/
 /results/
 /srcML/
-report.txt
+/libs/
 
-REPO
-REPO.old
+REPOS
+REPOS.old
+general.properties

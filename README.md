@@ -3,16 +3,20 @@ analyze possible refactorings in the undisciplined notations to disciplined nota
 
 # Instructions
 
-make sure you have the latest version of apache maven instaled in your machine. Likewise, you will need the latest version of python 3.
+You will need to have:
 
-clone or download the git-commit-statistics from here: https://github.com/jcarlosadm/git-commit-statistics
-
-import git-commit-statistics like maven project on eclipse. Run "mvn install".
+- latest version of apache maven
+- latest version of python 2 and following libraries: lxml, gitpython
+- latest version of git
 
 clone or download this project
 
+in script folder (use cd or similar command), run 'python buildProject.py'
+
 import this project like maven project on eclipse
 
-in root folder of this project, create a folder named "srcML". Put these files in this folder: src2srcml and srcml2src. These files can be found in http://131.123.42.38/lmcrs/ (download one to your SO, and unzip).
+Download the srcML in http://131.123.42.38/lmcrs/ for your OS. unzip and put the files src2srcml and srcml2src in folder "srcML"
 
-in root folder, create file REPOS and put one repository by line. This project analyzes C projects to find possible refactorings.
+modify file "REPOS" with one repository url by line. this project analyzes C projects.
+
+modify properties of the project with file "general.properties"
