@@ -15,6 +15,8 @@ in script folder (use cd or similar command), run 'python buildProject.py'
 
 import this project like maven project on eclipse
 
+in eclipse, go to libs/git-commit-statistics, right click and import as maven project
+
 Download the srcML in http://131.123.42.38/lmcrs/ for your OS. unzip and put the files src2srcml and srcml2src in folder "srcML"
 
 modify file "REPOS" with one repository url by line. this project analyzes C projects.

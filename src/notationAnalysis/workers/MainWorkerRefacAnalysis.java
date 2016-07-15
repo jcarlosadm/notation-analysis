@@ -95,6 +95,11 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         }
 
         int commitIndex = 0;
+        if (commits.size() <= 0) {
+            this.finishAnalysis(report);
+            return;
+        }
+        
         String commitId = commits.get(commitIndex);
         Hashtable<String, ArrayList<String>> fileHash = null;
 
@@ -240,6 +245,11 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             ++commitIndex;
         }
 
+        this.finishAnalysis(report);
+
+    }
+
+    private void finishAnalysis(Report report) {
         if (!report.close())
             System.out.println("error to close report");
 
@@ -254,7 +264,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             this.deleteAndCreateBackupFolder();
 
         System.out.println("finished analysis");
-
     }
 
     private boolean createReportFolder() {
