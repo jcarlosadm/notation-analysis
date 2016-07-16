@@ -30,12 +30,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
 
     private static final String UNDISCIPLINED_STRING = "undisciplined";
 
-    /*
-     * private static final int DISCIPLINED_INDEX = 1;
-     * 
-     * private static final int UNDISCIPLINED_INDEX = 0;
-     */
-
     private static final String NOTATION_SEPARATOR = "@";
 
     private static final String UNDISCIPLINED_MARK = "u";
@@ -128,9 +122,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                 if (bReader == null) {
                     continue;
                 }
-
-                // use it?
-                // List<String> head = fileHash.get(file);
+                
                 List<String> body = new ArrayList<>();
                 String line = "";
                 try {
@@ -147,13 +139,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                 undisciplinedList.clear();
                 this.addUndisciplinedList(undisciplinedList, body);
 
-                // TODO use it?
-                /*
-                 * if (!this.checkUndNotationTotal(head, undisciplinedList)) {
-                 * System.out.println("undisciplined total don\'t match");
-                 * continue; }
-                 */
-
                 String commitIdOther = commits.get(commitIndex + 1);
                 if (!this.resultMap.containsKey(commitIdOther)
                         || !this.resultMap.get(commitIdOther).containsKey(file)) {
@@ -164,10 +149,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                 if (bReader2 == null) {
                     continue;
                 }
-
-                // TODO use it?
-                // List<String> headOther =
-                // this.resultMap.get(commitIdOther).get(file);
+                
                 List<String> bodyOther = new ArrayList<>();
                 line = "";
                 try {
@@ -184,14 +166,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                 hashNotationsOther = new Hashtable<>();
                 this.fillDisciplined(hashNotationsOther, bodyOther);
                 this.fillUndisciplined(hashNotationsOther, bodyOther);
-
-                // TODO use it?
-                /*
-                 * if (!this.checkNotationNumbers(headOther,
-                 * hashNotationsOther)) { System.out.
-                 * println("disciplined and undisciplined total don\'t match");
-                 * continue; }
-                 */
 
                 boolean found = false;
                 String auxString = "";
@@ -321,15 +295,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         return bReader;
     }
 
-    // TODO use it?
-    /*
-     * private boolean checkUndNotationTotal(List<String> headValues,
-     * List<String> undisciplinedList) { int totalUndDisciplined =
-     * this.getTotalUndisciplined(headValues);
-     * 
-     * return (totalUndDisciplined == undisciplinedList.size()); }
-     */
-
     private void addUndisciplinedList(List<String> undisciplinedList, List<String> body) {
         undisciplinedList.clear();
         undisciplinedList.addAll(this.getNotationList(body, UNDISCIPLINED_STRING));
@@ -356,41 +321,9 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         int longerLength = longer.length();
         if (longerLength == 0) {
             return 1.0;
-            /* both strings are zero length */ }
-        /*
-         * // If you have StringUtils, you can use it to calculate the edit
-         * distance: return (longerLength -
-         * StringUtils.getLevenshteinDistance(longer, shorter)) / (double)
-         * longerLength;
-         */
+        }
         return (longerLength - StringUtils.getLevenshteinDistance(longer, shorter)) / (double) longerLength;
     }
-
-    // TODO use it?
-    /*
-     * private boolean checkNotationNumbers(List<String> headValues,
-     * Hashtable<String, List<String>> hashNotations) { int totalDisciplined =
-     * this.getTotalDisciplined(headValues); int totalUndisciplined =
-     * this.getTotalUndisciplined(headValues);
-     * 
-     * boolean matchUnd = (totalUndisciplined ==
-     * hashNotations.get(UNDISCIPLINED_STRING).size()); boolean matchD =
-     * (totalDisciplined == hashNotations.get(DISCIPLINED_STRING).size());
-     * 
-     * return (matchD && matchUnd); }
-     * 
-     * /*private int getValueFromHead(List<String> head, int index) { int value
-     * = 0; try { value = Integer.parseInt(head.get(index)); } catch (Exception
-     * e) { value = 0; }
-     * 
-     * return value; }
-     * 
-     * private int getTotalUndisciplined(List<String> head) { return
-     * this.getValueFromHead(head, UNDISCIPLINED_INDEX); }
-     * 
-     * private int getTotalDisciplined(List<String> head) { return
-     * this.getValueFromHead(head, DISCIPLINED_INDEX); }
-     */
 
     private List<String> getNotationList(List<String> body, String notationType) {
         List<String> list = new ArrayList<>();
