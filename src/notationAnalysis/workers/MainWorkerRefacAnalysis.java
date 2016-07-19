@@ -17,6 +17,7 @@ import gitCommitStatistics.git.GitManager;
 import gitCommitStatistics.properties.PropertiesManager;
 import gitCommitStatistics.workers.MainWorker;
 import gitCommitStatistics.workers.Worker;
+import notationAnalysis.util.Counters;
 import notationAnalysis.util.Report;
 
 public class MainWorkerRefacAnalysis extends MainWorker {
@@ -93,7 +94,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             this.finishAnalysis(report);
             return;
         }
-        
+
         String commitId = commits.get(commitIndex);
         Hashtable<String, ArrayList<String>> fileHash = null;
 
@@ -107,6 +108,8 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             toleranceLevel = 0.5;
         }
 
+        Counters notationCounters = new Counters();
+
         while (commitIndex < (commits.size() - 1)) {
             commitId = commits.get(commitIndex);
 
@@ -116,13 +119,14 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             }
 
             fileHash = this.resultMap.get(commitId);
+            boolean commitLock = false;
             for (String file : fileHash.keySet()) {
 
                 BufferedReader bReader = this.createBufferedReader(file, commitId);
                 if (bReader == null) {
                     continue;
                 }
-                
+
                 List<String> body = new ArrayList<>();
                 String line = "";
                 try {
@@ -136,8 +140,15 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                     continue;
                 }
 
-                undisciplinedList.clear();
-                this.addUndisciplinedList(undisciplinedList, body);
+                undisciplinedList = this.getNotationList(body, UNDISCIPLINED_STRING);
+
+                if ((!notationCounters.getCommits().isEmpty() && !notationCounters.getCommits().contains(commitId))
+                        || commitLock == true) {
+                    commitLock = true;
+                    notationCounters.addUndisciplinedTotal(commitId, undisciplinedList.size());
+                    notationCounters.addDisciplinedTotal(commitId,
+                            this.getNotationList(body, DISCIPLINED_STRING).size());
+                }
 
                 String commitIdOther = commits.get(commitIndex + 1);
                 if (!this.resultMap.containsKey(commitIdOther)
@@ -149,7 +160,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                 if (bReader2 == null) {
                     continue;
                 }
-                
+
                 List<String> bodyOther = new ArrayList<>();
                 line = "";
                 try {
@@ -166,6 +177,10 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                 hashNotationsOther = new Hashtable<>();
                 this.fillDisciplined(hashNotationsOther, bodyOther);
                 this.fillUndisciplined(hashNotationsOther, bodyOther);
+
+                notationCounters.addUndisciplinedTotal(commitIdOther,
+                        hashNotationsOther.get(UNDISCIPLINED_STRING).size());
+                notationCounters.addDisciplinedTotal(commitIdOther, hashNotationsOther.get(DISCIPLINED_STRING).size());
 
                 boolean found = false;
                 String auxString = "";
@@ -188,7 +203,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
 
                     for (String dNotationOther : hashNotationsOther.get(DISCIPLINED_STRING)) {
 
-                        if (this.compare(undNotation, dNotationOther) >= toleranceLevel) {
+                        if (compare(undNotation, dNotationOther) >= toleranceLevel) {
                             try {
                                 report.write(commitId + " " + commitIdOther + " " + System.lineSeparator());
                                 report.write("******************undisciplined notation******************"
@@ -219,8 +234,48 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             ++commitIndex;
         }
 
-        this.finishAnalysis(report);
+        Report reportCounters = this.createReportCounters(reponame);
+        if (reportCounters != null) {
+            this.writeReportCounters(reportCounters, notationCounters);
+            this.closeReportCounters(reportCounters);
+        } else {
+            System.out.println("error to create report for notation counters");
+        }
 
+        this.finishAnalysis(report);
+    }
+
+    private Report createReportCounters(String reponame) {
+        String reportCountersPath = PropertiesManager.getPropertie("path") + File.separator + REPORT_FOLDER_NAME
+                + File.separator + REPORT_NAME + "_" + reponame + "_counters." + REPORT_EXTENSION;
+        return Report.getInstance(reportCountersPath);
+    }
+
+    private void writeReportCounters(Report report, Counters counters) {
+        try {
+            report.write("undisciplined total = " + counters.getUndisciplinedTotal());
+            report.writeNewline();
+            report.write("Disciplined total = " + counters.getDisciplinedTotal());
+            report.writeNewline();
+            report.writeNewline();
+
+            report.write("commits:");
+            report.writeNewline();
+            for (String commit : counters.getCommits()) {
+                report.write(commit + " || disciplined: " + counters.getDisciplinedTotal(commit) + " | undisciplined: "
+                        + counters.getUndisciplinedTotal(commit));
+                report.writeNewline();
+            }
+        } catch (IOException e) {
+            System.out.println("error to write in report counter");
+        }
+
+    }
+
+    private void closeReportCounters(Report reportCounters) {
+        if (!reportCounters.close()) {
+            System.out.println("error to close report counters");
+        }
     }
 
     private void finishAnalysis(Report report) {
@@ -233,7 +288,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         } catch (Exception e) {
             recreateBackupFolder = true;
         }
-        
+
         if (recreateBackupFolder)
             this.deleteAndCreateBackupFolder();
 
@@ -295,11 +350,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         return bReader;
     }
 
-    private void addUndisciplinedList(List<String> undisciplinedList, List<String> body) {
-        undisciplinedList.clear();
-        undisciplinedList.addAll(this.getNotationList(body, UNDISCIPLINED_STRING));
-    }
-
     /**
      * Get similarity between two strings. Algorithm found in
      * http://stackoverflow.com/questions/955110/similarity-string-comparison-in
@@ -311,7 +361,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
      *            String two
      * @return similarity level between 0 and 1, inclusive
      */
-    private double compare(String str1, String str2) {
+    private static double compare(String str1, String str2) {
         String longer = str1, shorter = str2;
         if (str1.length() < str2.length()) { // longer should always have
                                              // greater length
@@ -369,5 +419,37 @@ public class MainWorkerRefacAnalysis extends MainWorker {
 
     private void fillDisciplined(Hashtable<String, List<String>> hashNotations, List<String> body) {
         hashNotations.put(DISCIPLINED_STRING, this.getNotationList(body, DISCIPLINED_STRING));
+    }
+
+    public static void main(String[] args) {
+        // temporary test of similarity function
+        String string1_1 = "    int   fd_tmp = mch_open(filename, O_RDONLY" + System.lineSeparator() + "# ifdef WIN32"
+                + System.lineSeparator() + "              | O_BINARY | O_NOINHERIT" + System.lineSeparator() + "# endif"
+                + System.lineSeparator() + "              , 0);";
+
+        String string1_2 = "# ifdef WIN32" + System.lineSeparator()
+                + "    int fd_tmp = mch_open(filename, O_RDONLY | O_BINARY | O_NOINHERIT, 0);" + System.lineSeparator()
+                + "# else" + System.lineSeparator() + "    int fd_tmp = mch_open(filename, O_RDONLY, 0);"
+                + System.lineSeparator() + "# endif";
+
+        String string2_1 = "    int fd_tmp = mch_open(filename, O_RDONLY" + System.lineSeparator() + "# ifdef WIN32"
+                + System.lineSeparator() + "             | O_BINARY | O_NOINHERIT" + System.lineSeparator() + "# endif"
+                + System.lineSeparator() + "             , 0);";
+        String string2_2 = "# ifdef WIN32" + System.lineSeparator()
+                + "    int    fd_tmp = mch_open(filename, O_RDONLY | O_BINARY | O_NOINHERIT, 0);"
+                + System.lineSeparator() + "# else" + System.lineSeparator()
+                + "    int    fd_tmp = mch_open(filename, O_RDONLY, 0);" + System.lineSeparator() + "# endif";
+
+        String string3_1 = "bool use_curses =" + System.lineSeparator() + "#ifdef HAVE_CURSES" + System.lineSeparator()
+                + "   true" + System.lineSeparator() + "#else" + System.lineSeparator() + "   false"
+                + System.lineSeparator() + "#endif" + System.lineSeparator() + ";";
+
+        String string3_2 = "#ifdef HAVE_CURSES" + System.lineSeparator() + "bool use_curses = true;"
+                + System.lineSeparator() + "#else" + System.lineSeparator() + "bool use_curses;"
+                + System.lineSeparator() + "#endif";
+
+        System.out.println("similarity 1 = " + compare(string1_1, string1_2));
+        System.out.println("similarity 2 = " + compare(string2_1, string2_2));
+        System.out.println("similarity 3 = " + compare(string3_1, string3_2));
     }
 }
