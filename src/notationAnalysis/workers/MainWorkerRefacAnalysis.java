@@ -203,9 +203,10 @@ public class MainWorkerRefacAnalysis extends MainWorker {
 
                     for (String dNotationOther : hashNotationsOther.get(DISCIPLINED_STRING)) {
 
-                        if (compare(undNotation, dNotationOther) >= toleranceLevel) {
+                        double comp = compare(undNotation, dNotationOther);
+                        if (comp >= toleranceLevel) {
                             try {
-                                report.write(commitId + " " + commitIdOther + " " + System.lineSeparator());
+                                report.write(commitIdOther + " " + file + " " + comp + System.lineSeparator());
                                 report.write("******************undisciplined notation******************"
                                         + System.lineSeparator());
                                 report.write(undNotation);
