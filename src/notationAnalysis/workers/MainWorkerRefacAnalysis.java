@@ -206,7 +206,12 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                         double comp = compare(undNotation, dNotationOther);
                         if (comp >= toleranceLevel) {
                             try {
-                                report.write(commitIdOther + " " + file + " " + comp + System.lineSeparator());
+                                report.write("link: " + this.getCommitUrl(repo, commitIdOther) + " "
+                                        + System.lineSeparator());
+                                report.write("file: " + file + System.lineSeparator());
+                                report.write("similarity: " + comp + System.lineSeparator());
+                                report.write("/---------------------------------------------------------\\"
+                                        + System.lineSeparator());
                                 report.write("******************undisciplined notation******************"
                                         + System.lineSeparator());
                                 report.write(undNotation);
@@ -215,6 +220,8 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                                         + System.lineSeparator());
                                 report.write(dNotationOther);
                                 report.writeNewline();
+                                report.write("\\_________________________________________________________/"
+                                        + System.lineSeparator());
                             } catch (IOException e) {
                                 System.out.println("error to write report");
                             }
@@ -244,6 +251,19 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         }
 
         this.finishAnalysis(report);
+    }
+
+    /**
+     * Get url to commit of repository
+     * 
+     * @param repo
+     *            repository url
+     * @param commitId
+     *            commit hash
+     * @return url to commit of repository
+     */
+    private String getCommitUrl(String repo, String commitId) {
+        return repo.substring(0, repo.lastIndexOf(".git")) + "/commit/" + commitId + "?diff=split";
     }
 
     private Report createReportCounters(String reponame) {
