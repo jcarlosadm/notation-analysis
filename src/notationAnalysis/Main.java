@@ -11,28 +11,28 @@ public class Main {
 
     public static void main(String[] args) {
         PropertiesManager.setNewPath("./general.properties");
-        
-        deleteResultFolder();
+
+        cleanResultFolder();
 
         MainWorkerRefacAnalysis.getInstance();
     }
 
-    private static void deleteResultFolder() {
-        boolean delResultFolder;
-        try {
-            delResultFolder = Boolean.parseBoolean(PropertiesManager.getPropertie("delete.result.folder.onstart"));
-        } catch (Exception e) {
-            delResultFolder = true;
+    private static void cleanResultFolder() {
+        File resultFolder = new File(PropertiesManager.getPropertie("path"));
+        if (!resultFolder.exists() || !resultFolder.isDirectory()) {
+            return;
         }
-        
-        if (delResultFolder) {
-            File resultFolder = new File(PropertiesManager.getPropertie("path"));
-            if (resultFolder.exists() && resultFolder.isDirectory()) {
-                try {
-                    FileUtils.deleteDirectory(resultFolder);
-                } catch (Exception e) {
-                }
-            }
+
+        try {
+            deleteFolder(new File(PropertiesManager.getPropertie("path") + File.separator + "results"));
+            deleteFolder(new File(PropertiesManager.getPropertie("path") + File.separator + "workers"));
+        } catch (Exception e) {
+        }
+    }
+
+    private static void deleteFolder(File folder) throws Exception {
+        if (folder.exists() && folder.isDirectory()) {
+            FileUtils.deleteDirectory(folder);
         }
     }
 }

@@ -63,6 +63,71 @@ public class MainWorkerRefacAnalysis extends MainWorker {
     }
 
     @Override
+    protected boolean makeClone(String repoName) {
+
+        String path = GitManager.PROJECT_PATH + File.separator + repoName + File.separator + ".git";
+        File gitFile = new File(path);
+        if (gitFile.exists() && gitFile.isDirectory()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    protected void fillResultMap() {
+        String backupProjectFolderPath = PropertiesManager.getPropertie("path") + File.separator + "backup"
+                + File.separator + MainWorker.getCurrentRepoName();
+        File backupProjectFolder = new File(backupProjectFolderPath);
+        if (!backupProjectFolder.exists() || !backupProjectFolder.isDirectory()) {
+            return;
+        }
+
+        File[] folders = backupProjectFolder.listFiles();
+        for (File folder : folders) {
+            if (folder.isDirectory()) {
+                this.resultMap.put(folder.getName(), new Hashtable<String, ArrayList<String>>());
+                
+                File[] files = folder.listFiles();
+                for (File file : files) {
+                    if (!file.isDirectory() && !file.getName().endsWith("SSSSerrorSSSS")) {
+                        this.resultMap.get(folder.getName()).put(file.getName()+".c", new ArrayList<String>());
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    protected boolean getData() {
+        String property = PropertiesManager.getPropertie("reuse.dmacros.data");
+
+        boolean reuse;
+        try {
+            reuse = Boolean.parseBoolean(property);
+        } catch (Exception e) {
+            return true;
+        }
+
+        File dataPath = new File(PropertiesManager.getPropertie("path") + File.separator + "backup" + File.separator
+                + MainWorker.getCurrentRepoName());
+        if (!dataPath.exists() || !dataPath.isDirectory()) {
+            return true;
+        }
+
+        if (!reuse) {
+            try {
+                FileUtils.deleteDirectory(dataPath);
+            } catch (IOException e) {
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     protected void makeAnalysisOnCurrentRepo(GitManager gitManager, String repo) {
 
         if (!this.createReportFolder()) {
@@ -222,6 +287,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                                 report.writeNewline();
                                 report.write("\\_________________________________________________________/"
                                         + System.lineSeparator());
+                                report.writeNewline();
                             } catch (IOException e) {
                                 System.out.println("error to write report");
                             }
@@ -351,13 +417,13 @@ public class MainWorkerRefacAnalysis extends MainWorker {
 
     private BufferedReader createBufferedReader(String file, String commit) {
         String resultFolderPath = PropertiesManager.getPropertie("path") + File.separator + "backup" + File.separator
-                + commit;
+                + MainWorker.getCurrentRepoName() + File.separator + commit;
         File backupFolder = new File(resultFolderPath);
         if (!backupFolder.exists() || !backupFolder.isDirectory()) {
             System.out.println("backup folder not exists");
             return null;
         }
-
+        
         String filename = file.substring(0, file.lastIndexOf("."));
         String filepath = resultFolderPath + File.separator + filename;
         BufferedReader bReader = null;
@@ -383,6 +449,9 @@ public class MainWorkerRefacAnalysis extends MainWorker {
      * @return similarity level between 0 and 1, inclusive
      */
     private static double compare(String str1, String str2) {
+        str1.replaceAll("\\s+","");
+        str2.replaceAll("\\s+","");
+        
         String longer = str1, shorter = str2;
         if (str1.length() < str2.length()) { // longer should always have
                                              // greater length

@@ -22,8 +22,8 @@ generalPropertiesString = ("path = results\n"
                             "comparator.tolerance.level = 0.5\n"
                             "\n"
                             "# debug\n"
-                            "recreate.backup.folder = true\n"
-                            "delete.result.folder.onstart = true")
+                            "recreate.backup.folder = false\n"
+                            "reuse.dmacros.data = true")
 repolistPath = os.path.abspath(parentPath+"/REPOS")
 repolistString = "https://github.com/GNOME/dia"
 repolistOldPath = os.path.abspath(parentPath+"/REPOS.old")

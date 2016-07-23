@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 
 import gitCommitStatistics.properties.PropertiesManager;
 import gitCommitStatistics.workers.InternWorker;
+import gitCommitStatistics.workers.MainWorker;
 import gitCommitStatistics.workers.Worker;
 
 public class WorkerRefacAnalysis extends Worker {
@@ -53,11 +54,48 @@ public class WorkerRefacAnalysis extends Worker {
             System.out.println("backup folder not exists");
             return;
         }
+        
+        boolean reuse;
+        try {
+            String reuseProperty = PropertiesManager.getPropertie("reuse.dmacros.data");
+            reuse = Boolean.parseBoolean(reuseProperty);
+        } catch (Exception e) {
+            reuse = false;
+        }
+        
+        String resultProjectFolderPath = resultFolderPath + File.separator + MainWorker.getCurrentRepoName();
+        File resultProjectFolder = new File(resultProjectFolderPath);
+        if (!resultProjectFolder.exists() || !resultProjectFolder.isDirectory()) {
+            if (!resultProjectFolder.mkdir()) {
+                System.out.println("error to create result project folder");
+            }
+        } else if (reuse == false) {
+            try {
+                FileUtils.deleteDirectory(resultProjectFolder);
+                if (!resultProjectFolder.mkdir()) {
+                    System.out.println("error to create result project folder");
+                }
+            } catch (Exception e) {
+            }
+        }
 
-        String commitPath = resultFolderPath + File.separator + this.hashId;
+        String commitPath = resultProjectFolderPath + File.separator + this.hashId;
         File commitFolder = new File(commitPath);
-        if (!commitFolder.mkdir()) {
-            System.out.println("error to create commit analysis directory");
+        if (!commitFolder.exists() || !commitFolder.isDirectory()) {
+            if (!commitFolder.mkdir()) {
+                System.out.println("error to create commit analysis directory");
+                return;
+            }
+        } else if (reuse == false) {
+            try {
+                FileUtils.deleteDirectory(commitFolder);
+                if (!commitFolder.mkdir()) {
+                    System.out.println("error to create commit analysis directory");
+                    return;
+                }
+            } catch (Exception e) {
+            }
+        } else {
             return;
         }
 
