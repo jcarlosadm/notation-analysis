@@ -185,6 +185,9 @@ public class MainWorkerRefacAnalysis extends MainWorker {
 
             fileHash = this.resultMap.get(commitId);
             boolean commitLock = false;
+            // progress
+            System.out.printf("%.2f\n",notationCounters.getProgress());
+            
             for (String file : fileHash.keySet()) {
 
                 BufferedReader bReader = this.createBufferedReader(file, commitId);
@@ -288,6 +291,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                                 report.write("\\_________________________________________________________/"
                                         + System.lineSeparator());
                                 report.writeNewline();
+                                System.out.println("ok!!!!!!");
                             } catch (IOException e) {
                                 System.out.println("error to write report");
                             }

@@ -70,4 +70,11 @@ public class Counters {
     public List<String> getCommits() {
         return this.commits;
     }
+    
+    public float getProgress() {
+        if (this.commits.size() == 0) {
+            return 0f;
+        }
+        return (((float) this.undiscByCommit.keySet().size())/(float)this.commits.size()) * 100f;
+    }
 }
