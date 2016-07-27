@@ -14,10 +14,12 @@ public class Counters {
     private Map<String, Integer> discByCommit = new HashMap<>();
     
     private List<String> commits = new ArrayList<>();
+    private int numberOfCommits = 0;
     
     public void reset() {
         this.undisciplinedTotal = 0;
         this.disciplinedTotal = 0;
+        this.numberOfCommits = 0;
         
         this.undiscByCommit.clear();
         this.discByCommit.clear();
@@ -71,10 +73,14 @@ public class Counters {
         return this.commits;
     }
     
+    public void setNumberOfCommits(int numberOfCommits) {
+        this.numberOfCommits = numberOfCommits;
+    }
+    
     public float getProgress() {
-        if (this.commits.size() == 0) {
+        if (this.numberOfCommits == 0) {
             return 0f;
         }
-        return (((float) this.undiscByCommit.keySet().size())/(float)this.commits.size()) * 100f;
+        return (((float) this.commits.size())/(float) this.numberOfCommits) * 100f;
     }
 }

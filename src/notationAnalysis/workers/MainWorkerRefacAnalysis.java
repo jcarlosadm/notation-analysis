@@ -87,11 +87,11 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         for (File folder : folders) {
             if (folder.isDirectory()) {
                 this.resultMap.put(folder.getName(), new Hashtable<String, ArrayList<String>>());
-                
+
                 File[] files = folder.listFiles();
                 for (File file : files) {
                     if (!file.isDirectory() && !file.getName().endsWith("SSSSerrorSSSS")) {
-                        this.resultMap.get(folder.getName()).put(file.getName()+".c", new ArrayList<String>());
+                        this.resultMap.get(folder.getName()).put(file.getName() + ".c", new ArrayList<String>());
                     }
                 }
             }
@@ -174,6 +174,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         }
 
         Counters notationCounters = new Counters();
+        notationCounters.setNumberOfCommits(commits.size());
 
         while (commitIndex < (commits.size() - 1)) {
             commitId = commits.get(commitIndex);
@@ -186,9 +187,12 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             fileHash = this.resultMap.get(commitId);
             boolean commitLock = false;
             // progress
-            System.out.printf("%.2f\n",notationCounters.getProgress());
-            
+            System.out.printf("Progress: %.2f %%\n", notationCounters.getProgress());
+            System.out.println("commit: " + commitId);
+
             for (String file : fileHash.keySet()) {
+                System.out.printf("    Progress: %.2f %%\n", notationCounters.getProgress());
+                System.out.println("    file: " + file);
 
                 BufferedReader bReader = this.createBufferedReader(file, commitId);
                 if (bReader == null) {
@@ -223,6 +227,8 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                         || !this.resultMap.get(commitIdOther).containsKey(file)) {
                     continue;
                 }
+                System.out.println("      current commit: " + commitId);
+                System.out.println("      next commit: " + commitIdOther);
 
                 BufferedReader bReader2 = this.createBufferedReader(file, commitIdOther);
                 if (bReader2 == null) {
@@ -253,6 +259,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                 boolean found = false;
                 String auxString = "";
                 for (String undNotation : undisciplinedList) {
+                    System.out.print("*");
                     if (found)
                         found = false;
 
@@ -274,6 +281,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                         double comp = compare(undNotation, dNotationOther);
                         if (comp >= toleranceLevel) {
                             try {
+                                System.out.println(" match found");
                                 report.write("link: " + this.getCommitUrl(repo, commitIdOther) + " "
                                         + System.lineSeparator());
                                 report.write("file: " + file + System.lineSeparator());
@@ -291,7 +299,6 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                                 report.write("\\_________________________________________________________/"
                                         + System.lineSeparator());
                                 report.writeNewline();
-                                System.out.println("ok!!!!!!");
                             } catch (IOException e) {
                                 System.out.println("error to write report");
                             }
@@ -307,6 +314,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                         continue;
                     }
                 }
+                System.out.println();
             }
 
             ++commitIndex;
@@ -427,7 +435,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
             System.out.println("backup folder not exists");
             return null;
         }
-        
+
         String filename = file.substring(0, file.lastIndexOf("."));
         String filepath = resultFolderPath + File.separator + filename;
         BufferedReader bReader = null;
@@ -453,9 +461,9 @@ public class MainWorkerRefacAnalysis extends MainWorker {
      * @return similarity level between 0 and 1, inclusive
      */
     private static double compare(String str1, String str2) {
-        str1.replaceAll("\\s+","");
-        str2.replaceAll("\\s+","");
-        
+        str1.replaceAll("\\s+", "");
+        str2.replaceAll("\\s+", "");
+
         String longer = str1, shorter = str2;
         if (str1.length() < str2.length()) { // longer should always have
                                              // greater length
