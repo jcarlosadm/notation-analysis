@@ -19,6 +19,7 @@ import gitCommitStatistics.workers.MainWorker;
 import gitCommitStatistics.workers.Worker;
 import notationAnalysis.util.Counters;
 import notationAnalysis.util.Report;
+import notationAnalysis.util.jplag.CompareJplag;
 
 public class MainWorkerRefacAnalysis extends MainWorker {
 
@@ -276,9 +277,12 @@ public class MainWorkerRefacAnalysis extends MainWorker {
                         continue;
                     }
 
+                    CompareJplag cJplag = CompareJplag.getInstance();
                     for (String dNotationOther : hashNotationsOther.get(DISCIPLINED_STRING)) {
 
-                        double comp = compare(undNotation, dNotationOther);
+                        // double comp = compare(undNotation, dNotationOther);
+                    	
+                    	double comp = cJplag.compareTo(undNotation, dNotationOther);
                         if (comp >= toleranceLevel) {
                             try {
                                 System.out.println(" match found");
@@ -523,7 +527,7 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         hashNotations.put(DISCIPLINED_STRING, this.getNotationList(body, DISCIPLINED_STRING));
     }
 
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         // temporary test of similarity function
         String string1_1 = "    int   fd_tmp = mch_open(filename, O_RDONLY" + System.lineSeparator() + "# ifdef WIN32"
                 + System.lineSeparator() + "              | O_BINARY | O_NOINHERIT" + System.lineSeparator() + "# endif"
@@ -553,5 +557,5 @@ public class MainWorkerRefacAnalysis extends MainWorker {
         System.out.println("similarity 1 = " + compare(string1_1, string1_2));
         System.out.println("similarity 2 = " + compare(string2_1, string2_2));
         System.out.println("similarity 3 = " + compare(string3_1, string3_2));
-    }
+    }*/
 }
