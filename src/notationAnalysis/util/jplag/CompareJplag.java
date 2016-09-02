@@ -65,6 +65,7 @@ public class CompareJplag {
 			return result;
 		} catch (Exception ioe) {
 			System.err.println("Exception in compareTo with Jplag");
+			ioe.printStackTrace();
 			return -1.0; // Flag for problems
 		}
 	}
@@ -115,11 +116,15 @@ public class CompareJplag {
 					break;
 				}
 			}
-
-			results = result.split(":");
-			strValue = results[indexValue];
-			value = Float.parseFloat(strValue) / normalize;
-			return value;
+			if (result == null) {
+			    System.err.println("Erro in Comparing with JPlag.");
+			    return -1.0; //Flag for problems
+			} else {
+			    results = result.split(":");
+			    strValue = results[indexValue];
+			    value = Float.parseFloat(strValue) / normalize;
+			    return value;
+			}
 		} catch (IOException ioe) {
 			System.err.println("IOException when comparing codes");
 			ioe.printStackTrace();
